@@ -1,27 +1,26 @@
-import { Router, Response } from 'express';
-import ExamAttempt from '../models/ExamAttempt';
-import Exam from '../models/Exam';
-import auth, { AuthRequest } from '../types/AuthRequest';
+import { Router, Response } from "express";
+import ExamAttempt from "../models/ExamAttempt";
+import Exam from "../models/Exam";
+import { authMiddleware } from "../middleware/auth"; // ✅ correct import
+import { AuthRequest } from "../types/AuthRequest";   // ✅ correct import
 
 const router = Router();
 
 /**
- * ===============================
  * POST /api/attempts
  * Student submits an exam
- * ===============================
  */
-router.post('/', auth, async (req: AuthRequest, res: Response) => {
+router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { examId, answers } = req.body;
 
     if (!examId || !Array.isArray(answers)) {
-      return res.status(400).json({ message: 'Invalid submission data' });
+      return res.status(400).json({ message: "Invalid submission data" });
     }
 
-    const exam = await Exam.findById(examId).populate('questions');
+    const exam = await Exam.findById(examId).populate("questions");
     if (!exam) {
-      return res.status(404).json({ message: 'Exam not found' });
+      return res.status(404).json({ message: "Exam not found" });
     }
 
     let correctAnswers = 0;
@@ -31,16 +30,13 @@ router.post('/', auth, async (req: AuthRequest, res: Response) => {
         (a: any) => a.questionId === question._id.toString()
       );
 
-      if (
-        userAnswer &&
-        userAnswer.selectedOption === question.correctAnswer
-      ) {
+      if (userAnswer && userAnswer.selectedOption === question.correctAnswer) {
         correctAnswers++;
       }
     });
 
     const attempt = await ExamAttempt.create({
-      studentId: req.user._id,
+      studentId: req.user?.id, // ✅ optional chaining
       examId,
       score: correctAnswers,
       totalQuestions: exam.questions.length,
@@ -49,74 +45,72 @@ router.post('/', auth, async (req: AuthRequest, res: Response) => {
 
     res.status(201).json({ attempt });
   } catch (error) {
-    console.error('Submit exam error:', error);
-    res.status(500).json({ message: 'Failed to submit exam' });
+    console.error("Submit exam error:", error);
+    res.status(500).json({ message: "Failed to submit exam" });
   }
 });
 
 /**
- * ===============================
  * GET /api/attempts
  * ADMIN: get ALL attempts
- * ===============================
  */
-router.get('/', auth, async (_req: AuthRequest, res: Response) => {
+router.get("/", authMiddleware, async (_req: AuthRequest, res: Response) => {
   try {
     const attempts = await ExamAttempt.find()
-      .populate('studentId', 'name email')
-      .populate('examId', 'title subject')
+      .populate("studentId", "name email")
+      .populate("examId", "title subject")
       .sort({ createdAt: -1 });
 
     res.json({ attempts });
   } catch (error) {
-    console.error('Admin fetch attempts error:', error);
-    res.status(500).json({ message: 'Failed to fetch attempts' });
+    console.error("Admin fetch attempts error:", error);
+    res.status(500).json({ message: "Failed to fetch attempts" });
   }
 });
 
 /**
- * ===============================
  * GET /api/attempts/student
  * STUDENT: get own attempts
- * ===============================
- */
-router.get('/student', auth, async (req: AuthRequest, res: Response) => {
-  try {
-    const attempts = await ExamAttempt.find({
-      studentId: req.user._id,
-    })
-      .populate('examId', 'title subject')
-      .sort({ createdAt: -1 });
-
-    res.json({ attempts });
-  } catch (error) {
-    console.error('Student fetch attempts error:', error);
-    res.status(500).json({ message: 'Failed to fetch attempts' });
-  }
-});
-
-/**
- * ===============================
- * GET /api/attempts/student/:studentId
- * ADMIN: get attempts for ONE student
- * ===============================
  */
 router.get(
-  '/student/:studentId',
-  auth,
+  "/student",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const attempts = await ExamAttempt.find({
+        studentId: req.user?.id,
+      })
+        .populate("examId", "title subject")
+        .sort({ createdAt: -1 });
+
+      res.json({ attempts });
+    } catch (error) {
+      console.error("Student fetch attempts error:", error);
+      res.status(500).json({ message: "Failed to fetch attempts" });
+    }
+  }
+);
+
+/**
+ * GET /api/attempts/student/:studentId
+ * ADMIN: get attempts for ONE student
+ */
+router.get(
+  "/student/:studentId",
+  authMiddleware,
   async (req: AuthRequest, res: Response) => {
     try {
       const { studentId } = req.params;
 
       const attempts = await ExamAttempt.find({ studentId })
-        .populate('studentId', 'name email')
-        .populate('examId', 'title subject')
+        .populate("studentId", "name email")
+        .populate("examId", "title subject")
         .sort({ createdAt: -1 });
 
       res.json({ attempts });
     } catch (error) {
-      console.error('Admin fetch student attempts error:', error);
-      res.status(500).json({ message: 'Failed to fetch attempts' });
+      console.error("Admin fetch student attempts error:", error);
+      res.status(500).json({ message: "Failed to fetch attempts" });
     }
   }
 );

@@ -1,9 +1,13 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest } from './auth';
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "../types/AuthRequest";
 
-export default (role: string) =>
-  (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user.role !== role)
-      return res.status(403).json({ message: 'Forbidden' });
-    next();
-  };
+export const adminMiddleware = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+  next();
+};
