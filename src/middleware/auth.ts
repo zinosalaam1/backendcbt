@@ -2,7 +2,7 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "../types/AuthRequest";
 
-export const authMiddleware = (
+const authMiddleware = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -27,3 +27,5 @@ export const authMiddleware = (
     return res.status(401).json({ message: "Invalid token" });
   }
 };
+
+export default authMiddleware;

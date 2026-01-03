@@ -1,25 +1,25 @@
-import { Router, Response } from 'express';
-import User from '../models/User';
-import auth, { AuthRequest } from "../types/AuthRequest";
-import role, { adminMiddleware } from "../middleware/role";
-
+import { Router, Response } from "express";
+import User from "../models/User";
+import auth from "../middleware/auth";
+import role from "../middleware/role";
+import { AuthRequest } from "../types/AuthRequest";
 
 const router = Router();
 
 // GET /api/users (admin)
-router.get('/', auth, role('admin'), async (_, res: Response) => {
-  const users = await User.find().select('-password');
+router.get("/", auth, role("admin"), async (_req, res: Response) => {
+  const users = await User.find().select("-password");
   res.json({ users });
 });
 
 // POST /api/users (admin)
-router.post('/', auth, role('admin'), async (req: AuthRequest, res: Response) => {
+router.post("/", auth, role("admin"), async (req: AuthRequest, res: Response) => {
   const user = await User.create(req.body);
   res.json({ user });
 });
 
 // DELETE /api/users/:id (admin)
-router.delete('/:id', auth, role('admin'), async (req, res: Response) => {
+router.delete("/:id", auth, role("admin"), async (req, res: Response) => {
   await User.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });

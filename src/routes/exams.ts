@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import Exam from '../models/Exam';
-import auth, { AuthRequest } from "../types/AuthRequest";
+import auth from "../middleware/auth";
+import { AuthRequest } from "../types/AuthRequest";
+
 
 const router = Router();
 
@@ -29,7 +31,7 @@ router.post('/', auth, async (req: AuthRequest, res: Response) => {
   try {
     const exam = await Exam.create({
       ...req.body,
-      createdBy: req.user!._id,
+      createdBy: req.user!.id,
     });
     res.status(201).json({ exam });
   } catch (err) {
