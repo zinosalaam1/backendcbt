@@ -6,8 +6,10 @@ import auth, { AuthRequest } from '../middleware/auth';
 const router = Router();
 
 /**
+ * ===============================
  * POST /api/attempts
  * Student submits an exam
+ * ===============================
  */
 router.post('/', auth, async (req: AuthRequest, res: Response) => {
   try {
@@ -17,13 +19,11 @@ router.post('/', auth, async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Invalid submission data' });
     }
 
-    // 1️⃣ Get exam with questions
     const exam = await Exam.findById(examId).populate('questions');
     if (!exam) {
       return res.status(404).json({ message: 'Exam not found' });
     }
 
-    // 2️⃣ Calculate score
     let correctAnswers = 0;
 
     exam.questions.forEach((question: any) => {
@@ -39,15 +39,11 @@ router.post('/', auth, async (req: AuthRequest, res: Response) => {
       }
     });
 
-    const totalQuestions = exam.questions.length;
-    const score = correctAnswers; // 1 mark per question (adjust later if needed)
-
-    // 3️⃣ Save attempt (ALL REQUIRED FIELDS)
     const attempt = await ExamAttempt.create({
-      studentId: req.user._id, // ✅ comes from auth middleware
+      studentId: req.user._id,
       examId,
-      score,
-      totalQuestions,
+      score: correctAnswers,
+      totalQuestions: exam.questions.length,
       correctAnswers,
     });
 
@@ -59,25 +55,70 @@ router.post('/', auth, async (req: AuthRequest, res: Response) => {
 });
 
 /**
+ * ===============================
  * GET /api/attempts
- * Admin: get all attempts
+ * ADMIN: get ALL attempts
+ * ===============================
  */
-router.get('/', auth, async (_, res: Response) => {
-  const attempts = await ExamAttempt.find()
-    .populate('studentId', 'name email')
-    .populate('examId', 'title subject');
-  res.json(attempts);
+router.get('/', auth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const attempts = await ExamAttempt.find()
+      .populate('studentId', 'name email')
+      .populate('examId', 'title subject')
+      .sort({ createdAt: -1 });
+
+    res.json({ attempts });
+  } catch (error) {
+    console.error('Admin fetch attempts error:', error);
+    res.status(500).json({ message: 'Failed to fetch attempts' });
+  }
 });
 
 /**
+ * ===============================
  * GET /api/attempts/student
- * Student: get own attempts
+ * STUDENT: get own attempts
+ * ===============================
  */
 router.get('/student', auth, async (req: AuthRequest, res: Response) => {
-  const attempts = await ExamAttempt.find({
-    studentId: req.user._id,
-  }).populate('examId', 'title subject');
-  res.json(attempts);
+  try {
+    const attempts = await ExamAttempt.find({
+      studentId: req.user._id,
+    })
+      .populate('examId', 'title subject')
+      .sort({ createdAt: -1 });
+
+    res.json({ attempts });
+  } catch (error) {
+    console.error('Student fetch attempts error:', error);
+    res.status(500).json({ message: 'Failed to fetch attempts' });
+  }
 });
+
+/**
+ * ===============================
+ * GET /api/attempts/student/:studentId
+ * ADMIN: get attempts for ONE student
+ * ===============================
+ */
+router.get(
+  '/student/:studentId',
+  auth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { studentId } = req.params;
+
+      const attempts = await ExamAttempt.find({ studentId })
+        .populate('studentId', 'name email')
+        .populate('examId', 'title subject')
+        .sort({ createdAt: -1 });
+
+      res.json({ attempts });
+    } catch (error) {
+      console.error('Admin fetch student attempts error:', error);
+      res.status(500).json({ message: 'Failed to fetch attempts' });
+    }
+  }
+);
 
 export default router;
