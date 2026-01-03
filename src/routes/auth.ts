@@ -5,7 +5,7 @@ import auth, { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/login', async (req, res) => {
+router.post("/login", (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({ username });
