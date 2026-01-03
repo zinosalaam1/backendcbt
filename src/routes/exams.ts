@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import Exam from '../models/Exam';
-import auth, { AuthRequest } from '../middleware/auth';
+import auth, { AuthRequest } from "../types/AuthRequest";
 
 const router = Router();
 

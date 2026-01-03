@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import ExamAttempt from '../models/ExamAttempt';
 import Exam from '../models/Exam';
-import auth, { AuthRequest } from '../middleware/auth';
+import auth, { AuthRequest } from '../types/AuthRequest';
 
 const router = Router();
 
