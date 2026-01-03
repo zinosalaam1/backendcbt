@@ -1,7 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import connectDB from './config/db';
+
+// Load dotenv ONLY in development
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 // Routes
 import authRoutes from './routes/auth';
@@ -10,7 +14,6 @@ import questionRoutes from './routes/questions';
 import examRoutes from './routes/exams';
 import attemptRoutes from './routes/attempts';
 
-dotenv.config();
 connectDB();
 
 const app = express();
@@ -20,7 +23,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:5173',
-      'https://spcbt-nine.vercel.app'
+      'https://spcbt-nine.vercel.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
