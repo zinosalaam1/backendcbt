@@ -1,7 +1,8 @@
 import { Router, Response } from 'express';
 import User from '../models/User';
 import auth, { AuthRequest } from "../types/AuthRequest";
-import role from '../middleware/role';
+import role, { adminMiddleware } from "../middleware/role";
+
 
 const router = Router();
 

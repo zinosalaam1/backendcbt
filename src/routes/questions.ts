@@ -24,7 +24,7 @@ router.post("/", auth, async (req: AuthRequest, res: Response) => {
 
     const question = await Question.create({
       ...req.body,
-      createdBy: req.user._id,
+      createdBy: req.user.id,
     });
 
     res.status(201).json({ question });

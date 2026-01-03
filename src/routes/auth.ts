@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/User";
-import { generateToken } from "../utils/generateToken";
+import generateToken from "../utils/generateToken"; // ✅ default import
+
 
 const router = Router();
 
