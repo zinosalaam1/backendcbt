@@ -20,7 +20,17 @@ router.post("/login", async (req: Request, res: Response) => {
   }
 
   const token = generateToken(user._id.toString());
-  res.json({ token });
+  res.json({
+  token,
+  user: {
+    id: user._id,
+    username: user.username,
+    role: user.role,
+    name: user.name,
+    email: user.email,
+  },
+});
+
 });
 
 export default router;
