@@ -1,13 +1,17 @@
-import { Response } from "express";
+import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest";
+import { assertAuthenticated } from "../utils/assertAuthenticated";
 
-export function assertAuthenticated(
-  req: AuthRequest,
-  res: Response
-): req is AuthRequest & { user: NonNullable<AuthRequest["user"]> } {
-  if (!req.user) {
-    res.status(401).json({ message: "Unauthorized" });
-    return false;
-  }
-  return true;
-}
+const role = (requiredRole: string) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!assertAuthenticated(req, res)) return;
+
+    if (req.user.role !== requiredRole) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    next();
+  };
+};
+
+export default role;
