@@ -19,7 +19,7 @@ router.get('/', auth, async (_req, res: Response) => {
 // GET /api/exams/active
 router.get('/active', async (_req, res: Response) => {
   try {
-    const exams = await Exam.find({ isActive: true });
+    const exams = await Exam.find({ isActive: true }).populate('questions');
     res.json({ exams });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch active exams' });
@@ -29,15 +29,31 @@ router.get('/active', async (_req, res: Response) => {
 // POST /api/exams
 router.post('/', auth, async (req: AuthRequest, res: Response) => {
   try {
+    const {
+      title,
+      subject,
+      duration,
+      questions = [],
+      totalMarks,
+      passingMarks,
+    } = req.body;
+
     const exam = await Exam.create({
-      ...req.body,
-      createdBy: req.user!.id,
+      title,
+      subject,
+      duration,
+      questions,
+      totalMarks,
+      passingMarks,
+      isActive: true, // 🔑 FORCE ACTIVE
     });
+
     res.status(201).json({ exam });
   } catch (err) {
     res.status(400).json({ message: 'Failed to create exam' });
   }
 });
+
 
 // PUT /api/exams/:id
 router.put('/:id', auth, async (req, res: Response) => {
