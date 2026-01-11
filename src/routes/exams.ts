@@ -19,7 +19,7 @@ router.get('/', auth, async (_req, res: Response) => {
 // GET /api/exams/active
 router.get('/active', async (_req, res: Response) => {
   try {
-    const exams = await Exam.find({ isActive: true }).populate('questions');
+    const exams = await Exam.find({ isActive: true }).populate('questions').lean();
     res.json({ exams });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch active exams' });
